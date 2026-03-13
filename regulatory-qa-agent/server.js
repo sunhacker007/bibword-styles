@@ -10,6 +10,11 @@ process.on("unhandledRejection", (reason) => {
   console.error("Unhandled Rejection:", reason);
 });
 
+process.on("exit", (code) => {
+  console.error("Process exiting with code:", code);
+  console.error(new Error("exit stack").stack);
+});
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -69,6 +74,14 @@ app.post("/api/chat", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`监管知识问答 API server running on http://localhost:${PORT}`);
+});
+
+server.on("error", (err) => {
+  console.error("Server error:", err);
+});
+
+server.on("close", () => {
+  console.error("Server closed!", new Error("close stack").stack);
 });
