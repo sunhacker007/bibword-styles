@@ -6,7 +6,7 @@ import cors from "cors";
 import { runAMLRules } from "./aml.js";
 import { assessKYC } from "./kyc.js";
 import { checkSanctions } from "./sanctionsService.js";
-import { processBatch, generateResultExcel, generateTemplate } from "./batchProcessor.js";
+import { processBatch, generateResultExcel, generateTemplate, countExcelRows } from "./batchProcessor.js";
 import {
   saveEvaluation,
   createBatchJob,
@@ -182,31 +182,26 @@ app.post("/api/sanctions/check", async (req, res) => {
 
 // ── Batch Processing ──────────────────────────────────────────────────────────
 
-app.get("/api/batch/template", (_req, res) => {
-  const buffer = generateTemplate();
+app.get("/api/batch/template", async (_req, res) => {
+  const buffer = await generateTemplate();
   res.setHeader("Content-Disposition", "attachment; filename=fcap_batch_template.xlsx");
   res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   res.send(buffer);
 });
 
-app.post("/api/batch/upload", upload.single("file"), (req, res) => {
+app.post("/api/batch/upload", upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "未上传文件" });
 
   const jobId = `job_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const skipAI = req.body.skipAI === "true";
+  const totalRows = await countExcelRows(req.file.buffer);
 
-  // Parse row count for progress tracking
-  const require2 = createRequire(import.meta.url);
-  const XLSX = require2("xlsx");
-  const wb = XLSX.read(req.file.buffer, { type: "buffer" });
-  const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
-
-  createBatchJob(jobId, req.file.originalname, rows.length);
+  createBatchJob(jobId, req.file.originalname, totalRows);
 
   // Fire-and-forget async processing
   processBatch(jobId, req.file.buffer, req.file.originalname, skipAI ? null : client, MODEL);
 
-  res.json({ jobId, totalRows: rows.length });
+  res.json({ jobId, totalRows });
 });
 
 app.get("/api/batch/status/:jobId", (req, res) => {
@@ -215,12 +210,12 @@ app.get("/api/batch/status/:jobId", (req, res) => {
   res.json(job);
 });
 
-app.get("/api/batch/download/:jobId", (req, res) => {
+app.get("/api/batch/download/:jobId", async (req, res) => {
   const job = getBatchJob(req.params.jobId);
   if (!job) return res.status(404).json({ error: "任务不存在" });
   if (job.status !== "done") return res.status(400).json({ error: "任务尚未完成" });
 
-  const buffer = generateResultExcel(req.params.jobId);
+  const buffer = await generateResultExcel(req.params.jobId);
   res.setHeader("Content-Disposition", `attachment; filename=fcap_results_${req.params.jobId}.xlsx`);
   res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   res.send(buffer);
