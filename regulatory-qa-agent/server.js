@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import express from "express";
 import cors from "cors";
 
@@ -6,8 +6,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+// Qwen (DashScope) OpenAI-compatible client
+const client = new OpenAI({
+  apiKey: process.env.DASHSCOPE_API_KEY,
+  baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
 });
 
 const SYSTEM_PROMPT = `你是一位专业的监管知识问答助手，专注于中国及国际金融监管、法律法规、合规要求等领域。
@@ -34,20 +36,19 @@ app.post("/api/chat", async (req, res) => {
   res.setHeader("Connection", "keep-alive");
 
   try {
-    const stream = client.messages.stream({
-      model: "claude-opus-4-6",
-      max_tokens: 2048,
-      system: SYSTEM_PROMPT,
-      thinking: { type: "adaptive" },
-      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+    const stream = await client.chat.completions.create({
+      model: process.env.QWEN_MODEL || "qwen-max",
+      stream: true,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...messages.map((m) => ({ role: m.role, content: m.content })),
+      ],
     });
 
-    for await (const event of stream) {
-      if (
-        event.type === "content_block_delta" &&
-        event.delta.type === "text_delta"
-      ) {
-        res.write(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`);
+    for await (const chunk of stream) {
+      const text = chunk.choices[0]?.delta?.content;
+      if (text) {
+        res.write(`data: ${JSON.stringify({ text })}\n\n`);
       }
     }
 
