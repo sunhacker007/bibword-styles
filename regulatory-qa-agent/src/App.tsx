@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { MessageBubble } from "./components/MessageBubble";
 import { SuggestedQuestions } from "./components/SuggestedQuestions";
+import { AMLAgent } from "./components/AMLAgent";
+import { KYCAgent } from "./components/KYCAgent";
 import type { Message, SuggestedQuestion } from "./types";
 import "./App.css";
 
@@ -17,7 +19,10 @@ function genId() {
   return Math.random().toString(36).slice(2);
 }
 
+type Tab = "chat" | "aml" | "kyc";
+
 export default function App() {
+  const [activeTab, setActiveTab] = useState<Tab>("aml");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -142,16 +147,16 @@ export default function App() {
     <div className="app">
       <header className="header">
         <div className="header-left">
-          <div className="header-logo" aria-hidden="true">监</div>
+          <div className="header-logo" aria-hidden="true">F</div>
           <div>
-            <h1 className="header-title">监管知识问答 Agent</h1>
-            <p className="header-subtitle">Regulatory Knowledge Q&amp;A · Powered by Claude</p>
+            <h1 className="header-title">FCAP · Fintech Compliance & Risk Platform</h1>
+            <p className="header-subtitle">AML Agent · KYC Agent · 监管知识问答</p>
           </div>
         </div>
         <div className="header-right">
           <span className="status-dot" aria-hidden="true" />
-          <span className="status-text">在线</span>
-          {messages.length > 0 && (
+          <span className="status-text">Demo</span>
+          {activeTab === "chat" && messages.length > 0 && (
             <button className="clear-btn" onClick={handleClear} aria-label="清除对话">
               清除
             </button>
@@ -159,71 +164,114 @@ export default function App() {
         </div>
       </header>
 
-      <main className="chat-area" role="log" aria-live="polite" aria-label="对话记录">
-        {messages.length === 0 ? (
-          <div className="welcome">
-            <div className="welcome-icon" aria-hidden="true">⚖️</div>
-            <h2 className="welcome-title">监管知识问答助手</h2>
-            <p className="welcome-desc">
-              专注于金融监管、合规政策、法律法规领域<br />
-              涵盖银行、证券、保险、外汇、反洗钱等方向
-            </p>
-            <SuggestedQuestions questions={SUGGESTED} onSelect={handleSelect} />
-          </div>
-        ) : (
-          <div className="messages">
-            {messages.map((m) => (
-              <MessageBubble key={m.id} message={m} />
-            ))}
-            <div ref={bottomRef} />
-          </div>
-        )}
-      </main>
+      <nav className="tab-nav">
+        <button
+          className={`tab-btn ${activeTab === "aml" ? "tab-active" : ""}`}
+          onClick={() => setActiveTab("aml")}
+        >
+          <span className="tab-icon">🔍</span>
+          AML Agent
+          <span className="tab-tag">反洗钱评分</span>
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "kyc" ? "tab-active" : ""}`}
+          onClick={() => setActiveTab("kyc")}
+        >
+          <span className="tab-icon">👤</span>
+          KYC Agent
+          <span className="tab-tag">客户尽职调查</span>
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "chat" ? "tab-active" : ""}`}
+          onClick={() => setActiveTab("chat")}
+        >
+          <span className="tab-icon">💬</span>
+          监管问答
+          <span className="tab-tag">知识库</span>
+        </button>
+      </nav>
 
-      <footer className="input-area">
-        {messages.length > 0 && !loading && (
-          <div className="quick-suggestions">
-            {SUGGESTED.slice(0, 3).map((q) => (
-              <button
-                key={q.id}
-                className="quick-chip"
-                onClick={() => handleSelect(q.text)}
-              >
-                {q.category}
-              </button>
-            ))}
-          </div>
-        )}
-        <div className="input-row">
-          <textarea
-            ref={inputRef}
-            className="input-box"
-            placeholder="请输入您的监管合规问题..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={loading}
-            rows={1}
-            aria-label="输入问题"
-          />
-          <button
-            className="send-btn"
-            onClick={() => sendMessage(input)}
-            disabled={!input.trim() || loading}
-            aria-label="发送"
-          >
-            {loading ? (
-              <span className="spinner" aria-hidden="true" />
+      {activeTab === "aml" && (
+        <main className="tab-content">
+          <AMLAgent />
+        </main>
+      )}
+
+      {activeTab === "kyc" && (
+        <main className="tab-content">
+          <KYCAgent />
+        </main>
+      )}
+
+      {activeTab === "chat" && (
+        <>
+          <main className="chat-area" role="log" aria-live="polite" aria-label="对话记录">
+            {messages.length === 0 ? (
+              <div className="welcome">
+                <div className="welcome-icon" aria-hidden="true">⚖️</div>
+                <h2 className="welcome-title">监管知识问答助手</h2>
+                <p className="welcome-desc">
+                  专注于金融监管、合规政策、法律法规领域<br />
+                  涵盖银行、证券、保险、外汇、反洗钱等方向
+                </p>
+                <SuggestedQuestions questions={SUGGESTED} onSelect={handleSelect} />
+              </div>
             ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <line x1="22" y1="2" x2="11" y2="13" />
-                <polygon points="22 2 15 22 11 13 2 9 22 2" />
-              </svg>
+              <div className="messages">
+                {messages.map((m) => (
+                  <MessageBubble key={m.id} message={m} />
+                ))}
+                <div ref={bottomRef} />
+              </div>
             )}
-          </button>
-        </div>
-        <p className="input-hint">按 Enter 发送 · Shift+Enter 换行 · 本助手仅供参考，不构成法律建议</p>
-      </footer>
+          </main>
+
+          <footer className="input-area">
+            {messages.length > 0 && !loading && (
+              <div className="quick-suggestions">
+                {SUGGESTED.slice(0, 3).map((q) => (
+                  <button
+                    key={q.id}
+                    className="quick-chip"
+                    onClick={() => handleSelect(q.text)}
+                  >
+                    {q.category}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="input-row">
+              <textarea
+                ref={inputRef}
+                className="input-box"
+                placeholder="请输入您的监管合规问题..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={loading}
+                rows={1}
+                aria-label="输入问题"
+              />
+              <button
+                className="send-btn"
+                onClick={() => sendMessage(input)}
+                disabled={!input.trim() || loading}
+                aria-label="发送"
+              >
+                {loading ? (
+                  <span className="spinner" aria-hidden="true" />
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            <p className="input-hint">按 Enter 发送 · Shift+Enter 换行 · 本助手仅供参考，不构成法律建议</p>
+          </footer>
+        </>
+      )}
     </div>
   );
 }

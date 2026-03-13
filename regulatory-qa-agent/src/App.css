@@ -254,6 +254,72 @@ body {
   text-align: center;
 }
 
+/* ── Tab Nav ── */
+.tab-nav {
+  display: flex;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+  flex-shrink: 0;
+  padding: 0 12px;
+  gap: 2px;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 14px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  position: relative;
+  top: 1px;
+}
+
+.tab-btn:hover {
+  color: #1e293b;
+  background: #f8fafc;
+  border-radius: 8px 8px 0 0;
+}
+
+.tab-active {
+  color: #6366f1;
+  font-weight: 700;
+  border-bottom-color: #6366f1;
+}
+
+.tab-icon {
+  font-size: 1rem;
+}
+
+.tab-tag {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.tab-active .tab-tag {
+  color: #a5b4fc;
+}
+
+/* ── Tab content scrollable area ── */
+.tab-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ── App shell wide mode for agents ── */
+.app {
+  max-width: 1100px;
+}
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
   .header-subtitle { display: none; }
@@ -261,4 +327,6 @@ body {
   .header-title { font-size: 15px; }
   .welcome-icon { font-size: 40px; }
   .welcome-title { font-size: 18px; }
+  .tab-btn { padding: 10px 8px; font-size: 0.78rem; }
+  .tab-tag { display: none; }
 }
