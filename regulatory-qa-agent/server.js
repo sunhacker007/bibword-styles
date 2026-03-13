@@ -84,3 +84,6 @@ server.on("error", (err) => {
 server.listen(PORT, () => {
   console.log(`监管知识问答 API server running on http://localhost:${PORT}`);
 });
+
+// keep-alive: prevents empty event loop exit
+setInterval(() => {}, 60000);
