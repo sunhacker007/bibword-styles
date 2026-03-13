@@ -1,0 +1,141 @@
+
+FCAP
+Fintech Compliance & Risk Platform
+
+
+02-C  PRD · KYC Agent
+版本 1.3  ·  2026年3月  ·  内部机密
+Owner: Product Lead  ·  状态: Phase 1 Active  ·  东南亚（SG/MY/ID）+ 欧洲（UK/EU）
+
+
+
+02-C  ·  PRODUCT REQUIREMENTS DOCUMENT
+PRD · KYC Agent
+版本 1.3  ·  Owner: Product Lead  ·  状态: Phase 1 Active  ·  最后更新: 2026-03
+  KYC  ·  SDD/CDD/EDD三层  ·  东南亚+欧洲  ·  FCA MLR2017  ·  GDPR  
+1. 问题陈述
+1.1 KYC困境：过严与过松的双重代价
+东南亚KYC市场存在两个极端：
+? 过松（低风险偏误）：仅要求手机号+OTP验证。短期转化率高，但AML/CFT合规风险极高。OJK 2023年对印尼三家数字贷款平台的联合罚款（总计IDR 48亿）中，KYC不充分是主要原因之一。
+? 过严（高风险偏误）：EDD标准一刀切，所有客户完整文件核查。平均KYC时长超过3天，头部电商嵌入金融产品的漏斗数据显示，KYC超过30分钟流失率达67%（Bain & Company 2024）。
+
+欧洲市场另有独特挑战：UK FCA MLR2017（Money Laundering Regulations 2017）Regulation 28–40对CDD/EDD有明确法律要求；GDPR Article 22要求纯自动化决策须提供"有意义的解释"——KYC拒绝通知"您的申请未通过"直接违规。
+
+1.2 我们要解决的核心问题
+问题一：KYC层级不动态——所有人走同一条路
+低风险用户被过度核查导致流失；高风险用户应该被深查但被一般流程漏过。解决方案：动态三层框架（SDD/CDD/EDD），基于实时风险评分动态分配核查层级，而非按产品固定。
+
+问题二：各市场合规要求差异大，人工维护成本高
+新加坡MAS、马来西亚BNM、印尼OJK、英国FCA各有不同的证件要求、记录保存年限、PEP定义。人工维护合规矩阵，一旦监管更新容易遗漏。解决方案：统一数据模型+市场配置层，合规更新只改配置不动核心逻辑。
+
+问题三：KYC决策不可解释（欧洲合规风险）
+GDPR Article 22(3)要求：当决策对个人产生"重大影响"时，须提供逻辑的有意义信息、预期后果和争议权利。当前纯自动化KYC拒绝缺少解释。解决方案：SHAP因子解释集成至KYC决策输出，拒绝通知自动生成合规说明。
+
+2. KYC三层框架：触发条件与完整规格
+三层框架是本PRD的核心设计。每层的触发条件含具体数值阈值，不允许模糊判断。
+
+2.1 SDD 简化尽职调查（Simplified Due Diligence）
+监管依据
+MAS Notice PSN02 §3.4 / UK MLR2017 Regulation 37（低风险客户可适用简化措施）/ BNM AML/CFT Policy Document §7.3（低风险产品简化要求）
+
+维度规格触发条件（全部满足）① 实时AML评分 < 20分
+② 注册国家为低风险司法管辖区（非FATF灰/黑名单）
+③ 月交易限额 ≤ $500 USD等值（或对应本币：S$680 / RM2,300 / IDR 7,800,000）
+④ 单笔交易限额 ≤ $200 USD等值
+⑤ 非BNPL产品（BNPL须至少CDD，MAS特别要求）
+⑥ 未触发PEP或制裁名单命中核查项目? 有效政府颁发ID（照片核对）— OCR提取，AI置信度阈值 ≥ 92%
+? 手机号OTP验证（6位数字，5分钟有效期）
+? 设备指纹采集（用于后续行为异常检测）
+? 制裁名单精确匹配（姓名+出生日期）目标完成时长< 3分钟（全自动，无人工介入）。P50目标 < 90秒。升级触发? 任意触发条件不满足 → 自动升级至CDD，不通知用户"降级了"
+? SDD期间发现异常行为（如设备被多账户使用）→ 升级CDD
+? 累计交易额超SDD限额 → 触发CDD更新记录保存5年（MAS/BNM/OJK）；6年（FCA MLR2017 Regulation 40）；统一按6年保存
+2.2 CDD 标准尽职调查（Customer Due Diligence）
+监管依据
+MAS Notice PSN02 §4 / UK MLR2017 Regulation 28（CDD必须包含：客户身份核实、业务性质理解、持续监控）/ BNM AMLA 2001 §14A / OJK POJK No.12/2017 §15
+
+维度规格触发条件（满足任一）① AML评分 20–69分
+② 月交易限额 $500–$50,000 USD等值（或本币等值）
+③ 跨境交易（收/付款方账户注册国与用户注册国不同）
+④ BNPL产品（无论金额，MAS特别要求）
+⑤ 用户申请信贷额度 > $1,000 USD等值
+⑥ 从SDD升级（触发升级条件后）核查项目? 有效政府颁发ID（OCR + MRZ码校验 + 防伪特征检测）
+? 地址证明：近3个月账单/官方信件（水电煤气账单、银行对账单）
+? 自拍活体检测：动态动作（眨眼+点头），防御GAN换脸攻击（活体检测供应商：Sumsub）
+? PEP数据库筛查（本人+直系家属，一级亲属）
+? 制裁名单模糊匹配（Levenshtein距离 ≤ 2）
+? 业务性质声明（职业类别、收入来源，下拉选择）目标完成时长P50 < 25分钟（AI自动处理）；AI置信度 < 85%的案例进人工复核队列人工复核触发? Sumsub核验置信度 < 85%
+? PEP命中（无论匹配程度，一律人工确认）
+? 制裁名单模糊命中（精确命中直接拒绝+冻结）
+? AI对证件真实性评分 < 90%（可能伪造）
+? 人工复核SLA：标准案例 < 25分钟；PEP案例 < 1个工作日升级至EDD触发? AML评分 ≥ 70分
+? 月交易限额 > $50,000 USD等值
+? PEP精确命中
+? 制裁名单精确命中（立即冻结，不做EDD，直接拒绝+SAR）
+? 高风险国籍（FATF黑名单国家国籍持有者）
+2.3 EDD 强化尽职调查（Enhanced Due Diligence）
+监管依据
+UK MLR2017 Regulation 33（EDD必须适用于高风险情形，含PEP、高风险第三国客户）/ MAS Notice PSN02 §5（EDD须理解业务关系目的、财富来源）/ FATF Recommendation 12（PEP须EDD）
+
+维度规格触发条件（满足任一即触发）① PEP精确命中（本人或直系家属，一级亲属）
+② AML评分 ≥ 70分
+③ 月交易限额 > $50,000 USD等值
+④ 客户注册国为FATF黑名单国家（伊朗、朝鲜、缅甸等）
+⑤ 关联账户历史有SAR记录
+⑥ 客户明确要求匿名或拒绝提供KYC文件
+注意：制裁名单精确命中不做EDD，直接拒绝+账户冻结+SAR提交核查项目（CDD全套 + 以下额外项）? 财富来源证明（Source of Wealth / Source of Funds）：
+  - 工资单 / 税务申报 / 企业财报（至少2份佐证文件）
+? 业务关系目的说明（书面声明，含预期交易频率和金额）
+? 高级管理层审批：EDD案例须首席合规官或授权高级合规官签字
+? 持续监控升级：每6个月主动要求更新文件（普通客户12-24个月）
+? 实时交易监控：所有交易实时评分，异常立即告警（非T+1批量）
+? 政治联系核实：PEP类客户须核实具体职位、任职机构、任期审批流程① 合规分析师完成初审，提交EDD报告草稿
+② 首席合规官48小时内审批
+③ 审批通过：开立账户，设置实时监控标记
+④ 审批拒绝：账户拒绝，30天内评估是否提交SAR
+⑤ 需要更多信息：通知客户补件，暂停审批计时SLA时限? 目标处理时长：2个工作日
+? 最长时限：5个工作日（超期自动升级至首席合规官）
+? PEP专项：1个工作日启动，3个工作日完成
+3. 各市场合规要求矩阵（含法规条款编号）
+以下矩阵是系统合规配置层的来源文件。监管更新时，先更新本矩阵，再同步至系统配置。
+
+3.1 KYC核心要求对比
+合规要求新加坡 MAS马来西亚 BNM印度尼西亚 OJK英国 FCA法规依据MAS Notice PSN02AMLA 2001 + BNM AML/CFT PolicyUU No.8/2010 + POJK 12/2017MLR2017 + FCA JMLSG最低身份核验文件政府ID（NRIC/护照/PR证）MyKad（公民）/ 护照（外籍）KTP（公民）/ 护照（外籍）护照 / 国家ID / 驾照（Reg 28(3))地址证明要求无强制（低风险产品可豁免）近3个月账单或官方信件近3个月账单近3个月账单（Reg 28(2)(b)）活体检测要求建议（非强制），高风险产品强制建议，OJK倾向强制化OJK 2022指引建议强制MLR2017未明确，但FCA JMLSG Part I视为最佳实践PEP筛查要求§6.2：必须，含家属AML/CFT Policy §8：必须POJK 12/2017 §16：必须Reg 35：PEP须EDD，本人+家属+密切关系人制裁名单筛查范围MAS Sanctions List + OFAC + UNBNM MFL + OFAC + UNDTTOT + OFAC + UNHMT Consolidated List + OFAC + UN + EU记录保存年限5年（PSN02 §8.1）5年（AMLA 2001 §22）5年（UU 8/2010 §18）6年（MLR2017 Regulation 40）拒绝决策解释义务无硬性规定无硬性规定无硬性规定GDPR Article 22(3)：须提供逻辑解释、预期后果、争议权利CTR申报门槛S$20,000（MAS TSPR §5）RM50,000（AMLA §14）IDR 500,000,000（PPATK规定）?10,000（HMRC threshold）
+3.2 UK FCA MLR2017关键条款逐一映射
+以下是FCA MLR2017核心CDD/EDD条款与FCAP KYC Agent功能的一对一映射。合规自查时以此为检查清单。
+
+条款条款内容（精要）覆盖状态FCAP实现方式Reg 28CDD措施须包含：客户身份核实、授权代表核实、实益所有人核实、业务关系目的和性质理解? Phase 1覆盖KYC三层框架；CDD核查项包含业务性质声明；B2B场景含UBO核查Reg 28(3)须核实客户身份证明文件（政府颁发ID）? Phase 1覆盖Sumsub集成：证件OCR + MRZ校验 + 防伪检测Reg 28(2)(b)须核实客户居住地址? Phase 1覆盖CDD核查项：近3个月地址证明（账单/信件）Reg 33对高风险情形须采用EDD（含高风险第三国、PEP、复杂业务结构）? Phase 1覆盖EDD触发条件含：FATF黑名单国籍、PEP命中、AML评分≥70Reg 35PEP须EDD：涵盖本人、家属及密切关系人? Phase 1覆盖ComplyAdvantage PEP数据库含3层关系；一级亲属自动标记Reg 37低风险情形可适用SDD（须有文件支撑风险评估依据）? Phase 1覆盖SDD触发条件含完整的风险评估逻辑；评估依据自动写入审计日志Reg 40CDD相关记录须保存5年（业务关系终止后）? Phase 1覆盖统一按6年保存（以最严格市场为准）；不可修改审计日志Reg 41对现有客户须在适当时机更新CDD?? Phase 2Perpetual KYC功能：风险变化触发重核（Phase 2）GDPR Art.22自动化决策须提供有意义的解释，客户有权要求人工复核? Phase 1覆盖（部分）信贷拒绝含SHAP解释；KYC拒绝申诉入口（Phase 1基础版）
+4. 第三方集成技术规格
+4.1 Sumsub — 证件核验 & 活体检测
+集成维度规格触发时机CDD及以上级别的新客户入职；SDD客户升级至CDD时；EDD重新核查时认证方式HMAC-SHA256签名：timestamp + method + url + body；防止Webhook伪造回调超时处理API超时阈值：5秒；超时后自动将案件推入人工复核队列，不阻断用户流程；重试机制：指数退避，最多3次Webhook回调处理? reviewStatus = "completed" + reviewResult = "GREEN" → KYC置信度写库，触发后续AML评分
+? reviewStatus = "completed" + reviewResult = "RED" → 案件推人工复核队列，moderationComment写入原因
+? reviewStatus = "pending" → 定时轮询（每30秒）直至完成
+? Webhook签名验证失败 → 忽略请求，写告警日志核心返回字段? applicantId：Sumsub系统ID，写入FCAP数据库关联
+? reviewStatus / reviewResult：核验状态和结果
+? moderationComment：人工审核备注（拒绝原因）
+? confidence：OCR置信度（0-100），< 85分推人工数据留存Sumsub原始图像不在FCAP存储（由Sumsub保管符合GDPR）；FCAP只存储核验结果摘要和关联ID
+4.2 ComplyAdvantage — PEP & 制裁筛查
+集成维度规格筛查范围? Sanction（制裁名单）：OFAC SDN / UN Consolidated / EU Consolidated / HMT / MAS / OFAC CAPTA
+? PEP（政治公众人物）：全球PEP数据库，含1-3级关系
+? Warning（执法机构警告）：Interpol / FinCEN / NCA等
+? Adverse Media（负面媒体）：EDD案件额外开启匹配策略? 精确匹配：姓名完全一致（含别名）→ 立即触发I1规则（40分），账户冻结
+? 模糊匹配：Levenshtein距离 ≤ 2 → 触发I2规则，推人工确认
+? 噪声过滤：同名误报识别（对比出生日期、国籍、职业）响应性能P95 < 200ms；超时降级本地缓存名单（每日00:00更新），不阻断KYC流程持续监控现有客户：每日批量对比更新名单；命中立即推飞书告警至合规分析师（Phase 1实现）；Perpetual KYC深度集成在Phase 2
+5. 功能规格（MoSCoW优先级）
+Must Have
+功能点数验收标准M1  KYC三层框架（SDD/CDD/EDD）8pt三层触发条件含具体数值阈值；层级升降自动判断；升级动作不需用户重新填写信息M2  Sumsub证件核验集成8ptWebhook回调处理4种状态；失败自动重试3次；超时5秒降级人工队列；结果写入FCAP数据库M3  ComplyAdvantage PEP+制裁筛查5pt4类筛查（制裁/PEP/警告/负面媒体）；精确命中立即阻断；模糊命中推人工；P95<200msM4  GDPR Art.22 KYC拒绝解释5pt拒绝通知含：主要拒绝原因（非技术语言）、可改善方向、申诉权利说明；欧洲市场强制；东南亚可选M5  各市场合规配置层5pt新增市场不改核心逻辑，只改配置；支持4个市场（SG/MY/ID/UK）独立配置证件类型、限额、名单M6  EDD案件首席合规官审批流3ptEDD案件自动推审批队列；飞书通知CCO；48小时提醒；审批结果含签字记录
+Should Have
+? S1  B2B企业客户KYC（UBO核查）— 企业注册文件+股东名册+UBO身份核查（持股≥25%）（8pt）
+? S2  KYC审核工作台 — 合规分析师处理复核队列的专属界面，含AI核查摘要和历史记录（5pt）
+? S3  证件效期告警 — 距证件到期<90天时飞书提醒客户更新（3pt）
+
+Could Have（Phase 2）
+? C1  Perpetual KYC — 事件驱动持续监控，风险评分变化>20分触发重新核查
+? C2  多语言KYC流程 — 马来语/印尼语界面（依赖前端国际化）
+
+Won't Have · 本阶段不讨论
+明确排除
+(1) 生物识别声纹验证——技术成熟度不足，Phase 3评估。(2) eKYC政府API对接（如MyInfo SG）——需要单独申请API权限，时间不确定，不进Phase 1。(3) 客户自助申诉界面——Phase 2，当前申诉通过人工邮件处理。
+
+6. 非功能性需求 & 验收标准
+维度目标值测量方法KYC CDD P50时长< 25分钟系统日志：从提交到最终决策（放行/拒绝/EDD升级）的时间戳差值KYC SDD全自动时长< 3分钟系统日志P50统计，含Sumsub响应时间Sumsub API可用性依赖SLA ≥ 99.9%Sumsub合同SLA；本地降级：人工队列兜底，不中断业务KYC决策一致性同一申请重复提交结果一致每月抽验20个案件重跑，结果差异=0记录保存合规6年100%年度审计；定期验证最早记录可读取GDPR拒绝解释覆盖率欧洲市场100%每月抽查欧洲拒绝通知，含解释的比例
+FCAP  ·  02-C PRD KYC Agent  ·  版本 1.3  ·  内部机密
