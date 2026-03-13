@@ -1,3 +1,4 @@
+import http from "http";
 import OpenAI from "openai";
 import express from "express";
 import cors from "cors";
@@ -74,14 +75,12 @@ app.post("/api/chat", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-const server = app.listen(PORT, () => {
-  console.log(`监管知识问答 API server running on http://localhost:${PORT}`);
-});
+const server = http.createServer(app);
 
 server.on("error", (err) => {
   console.error("Server error:", err);
 });
 
-server.on("close", () => {
-  console.error("Server closed!", new Error("close stack").stack);
+server.listen(PORT, () => {
+  console.log(`监管知识问答 API server running on http://localhost:${PORT}`);
 });
