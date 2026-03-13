@@ -2,6 +2,14 @@ import OpenAI from "openai";
 import express from "express";
 import cors from "cors";
 
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled Rejection:", reason);
+});
+
 const app = express();
 app.use(cors());
 app.use(express.json());
