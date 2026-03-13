@@ -183,7 +183,7 @@ ${rulesText || "无"}
 1. 分析该交易的主要风险点
 2. 给出是否需要进一步调查的建议
 
-${score >= 70 ? "另外，请在"SAR草稿"标题下，起草一份简短的可疑活动报告摘要（150字以内），包含：可疑活动描述、触发原因。" : ""}`;
+${score >= 70 ? "另外，请在【SAR草稿】标题下，起草一份简短的可疑活动报告摘要（150字以内），包含：可疑活动描述、触发原因。" : ""}`;
 
     try {
       const completion = await client.chat.completions.create({
@@ -192,8 +192,8 @@ ${score >= 70 ? "另外，请在"SAR草稿"标题下，起草一份简短的可�
       });
       const content = completion.choices[0]?.message?.content || "";
 
-      if (score >= 70 && content.includes("SAR草稿")) {
-        const parts = content.split("SAR草稿");
+      if (score >= 70 && content.includes("【SAR草稿】")) {
+        const parts = content.split("【SAR草稿】");
         analysis = parts[0].trim();
         sarDraft = parts[1].replace(/^[：:]\s*/, "").trim();
       } else {
