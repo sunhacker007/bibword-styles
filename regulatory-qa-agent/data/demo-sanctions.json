@@ -1,0 +1,97 @@
+{
+  "_note": "DEMO DATA ONLY - NOT REAL SANCTIONS LIST. For testing purposes.",
+  "source": "DEMO_COMPOSITE",
+  "last_updated": "2025-03-01",
+  "entries": [
+    {
+      "id": "DEMO-OFAC-001",
+      "names": ["sanctions test", "sanctionstest"],
+      "aliases": [],
+      "dob": null,
+      "nationality": "KP",
+      "reason": "Weapons proliferation - DEMO",
+      "list": "OFAC_SDN"
+    },
+    {
+      "id": "DEMO-OFAC-002",
+      "names": ["demo blocked", "demoblocked", "demo block"],
+      "aliases": ["DB Holdings", "Demo Block LLC"],
+      "dob": "1975-06-15",
+      "nationality": "IR",
+      "reason": "Terrorism financing - DEMO",
+      "list": "OFAC_SDN"
+    },
+    {
+      "id": "DEMO-OFAC-003",
+      "names": ["test ofac", "testofac"],
+      "aliases": [],
+      "dob": null,
+      "nationality": "SY",
+      "reason": "Sanctions evasion - DEMO",
+      "list": "OFAC_SDN"
+    },
+    {
+      "id": "DEMO-UN-001",
+      "names": ["kim demo", "kimdemo", "kim d"],
+      "aliases": ["K. Demo", "Demo Kim"],
+      "dob": "1984-01-08",
+      "nationality": "KP",
+      "reason": "UN Security Council sanctions - DEMO",
+      "list": "UN_CONSOLIDATED"
+    },
+    {
+      "id": "DEMO-EU-001",
+      "names": ["ivan testov", "i testov", "testov ivan"],
+      "aliases": ["I. Testov"],
+      "dob": "1967-03-22",
+      "nationality": "RU",
+      "reason": "Asset freezing - DEMO",
+      "list": "EU_CONSOLIDATED"
+    },
+    {
+      "id": "DEMO-MAS-001",
+      "names": ["john blacklist", "blacklist john", "j blacklist"],
+      "aliases": [],
+      "dob": "1980-11-30",
+      "nationality": "SG",
+      "reason": "MAS prohibited person - DEMO",
+      "list": "MAS_WATCHLIST"
+    },
+    {
+      "id": "DEMO-HMT-001",
+      "names": ["ali demo", "demo ali", "ali d"],
+      "aliases": ["A. Demo Trading Co"],
+      "dob": null,
+      "nationality": "IR",
+      "reason": "HM Treasury financial sanctions - DEMO",
+      "list": "HMT"
+    },
+    {
+      "id": "DEMO-OFAC-004",
+      "names": ["carlos blocked", "blocked carlos", "c blocked"],
+      "aliases": ["CB Investments"],
+      "dob": "1972-07-19",
+      "nationality": "VE",
+      "reason": "Narcotics trafficking - DEMO",
+      "list": "OFAC_NARCOTICS"
+    },
+    {
+      "id": "DEMO-INTERPOL-001",
+      "names": ["red notice demo", "demo red notice"],
+      "aliases": [],
+      "dob": "1990-05-05",
+      "nationality": "NG",
+      "reason": "Interpol Red Notice - DEMO",
+      "list": "INTERPOL"
+    },
+    {
+      "id": "DEMO-UN-002",
+      "names": ["ahmed sanctions", "sanctions ahmed", "a sanctions"],
+      "aliases": [],
+      "dob": "1965-12-01",
+      "nationality": "YE",
+      "reason": "Arms embargo - DEMO",
+      "list": "UN_CONSOLIDATED"
+    }
+  ]
+}

@@ -3,6 +3,9 @@ import { MessageBubble } from "./components/MessageBubble";
 import { SuggestedQuestions } from "./components/SuggestedQuestions";
 import { AMLAgent } from "./components/AMLAgent";
 import { KYCAgent } from "./components/KYCAgent";
+import { BatchAnalysis } from "./components/BatchAnalysis";
+import { Dashboard } from "./components/Dashboard";
+import { CaseManagement } from "./components/CaseManagement";
 import type { Message, SuggestedQuestion } from "./types";
 import "./App.css";
 
@@ -19,7 +22,7 @@ function genId() {
   return Math.random().toString(36).slice(2);
 }
 
-type Tab = "chat" | "aml" | "kyc";
+type Tab = "chat" | "aml" | "kyc" | "batch" | "dashboard" | "cases";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>("aml");
@@ -150,7 +153,7 @@ export default function App() {
           <div className="header-logo" aria-hidden="true">F</div>
           <div>
             <h1 className="header-title">FCAP · Fintech Compliance & Risk Platform</h1>
-            <p className="header-subtitle">AML Agent · KYC Agent · 监管知识问答</p>
+            <p className="header-subtitle">AML · KYC · 批量分析 · 风控看板 · 案件管理</p>
           </div>
         </div>
         <div className="header-right">
@@ -189,6 +192,30 @@ export default function App() {
           监管问答
           <span className="tab-tag">知识库</span>
         </button>
+        <button
+          className={`tab-btn ${activeTab === "batch" ? "tab-active" : ""}`}
+          onClick={() => setActiveTab("batch")}
+        >
+          <span className="tab-icon">📊</span>
+          批量分析
+          <span className="tab-tag">Excel导入</span>
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "dashboard" ? "tab-active" : ""}`}
+          onClick={() => setActiveTab("dashboard")}
+        >
+          <span className="tab-icon">📈</span>
+          风控看板
+          <span className="tab-tag">统计总览</span>
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "cases" ? "tab-active" : ""}`}
+          onClick={() => setActiveTab("cases")}
+        >
+          <span className="tab-icon">🗂️</span>
+          案件管理
+          <span className="tab-tag">合规工作台</span>
+        </button>
       </nav>
 
       {activeTab === "aml" && (
@@ -200,6 +227,24 @@ export default function App() {
       {activeTab === "kyc" && (
         <main className="tab-content">
           <KYCAgent />
+        </main>
+      )}
+
+      {activeTab === "batch" && (
+        <main className="tab-content">
+          <BatchAnalysis />
+        </main>
+      )}
+
+      {activeTab === "dashboard" && (
+        <main className="tab-content">
+          <Dashboard />
+        </main>
+      )}
+
+      {activeTab === "cases" && (
+        <main className="tab-content">
+          <CaseManagement />
         </main>
       )}
 
